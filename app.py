@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from urllib.parse import quote
 
 st.set_page_config(page_title="Rekap Absen Pegawai 2025", layout="wide")
 
@@ -8,16 +9,16 @@ st.title("📊 Rekap Absen Pegawai 2025")
 # URL Google Sheets CSV (ganti ID dan sheet sesuai milikmu)
 SHEET_ID = "1JG2Vn_qInZrF5OdOIT62L2gu0vqzkP84_WiQFlPDYMo"
 SHEET_NAME = "Rekap Absen"  # nama sheet persis dari Google Sheets
-url = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv&sheet={SHEET_NAME}"
+url = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv&sheet={quote(SHEET_NAME)}"
 
 try:
     # baca data
     df = pd.read_csv(url, header=None)
 
-    # buang kolom kosong jika ada
+    # buang kolom kosong
     df = df.dropna(axis=1, how="all")
 
-    # set header kolom sesuai format absensi
+    # set header sesuai format absensi
     df.columns = ["Tanggal", "Hari", "Nama", "Jam Masuk", "Jam Pulang"]
 
     # filter pegawai
@@ -30,7 +31,7 @@ try:
     # tampilkan tabel
     st.dataframe(df, use_container_width=True)
 
-    # unduh CSV
+    # tombol download
     csv = df.to_csv(index=False).encode("utf-8")
     st.download_button(
         "⬇️ Unduh Rekap CSV",
