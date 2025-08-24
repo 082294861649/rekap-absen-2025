@@ -62,4 +62,9 @@ try:
 
     # --- GRAFIK JUMLAH ABSEN ---
     st.subheader("📈 Statistik Kehadiran")
-    hadir = df.groupby("Nama").size().reset_index(name="Ju_
+    hadir = df.groupby("Nama").size().reset_index(name="Jumlah Hadir")
+    st.bar_chart(hadir.set_index("Nama"))
+
+except Exception as e:
+    st.error("Gagal membaca file dari Google Sheets!")
+    st.exception(e)
