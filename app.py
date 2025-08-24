@@ -1,23 +1,12 @@
-import streamlit as st
 import pandas as pd
 
-st.title("📊 Rekap Absen Pegawai 2025")
+# ID dari Google Sheet
+sheet_id = "1JDe9Ldrk8IMJZjzhUVDXBA5B-ZptkoI1"
 
-uploaded_file = st.file_uploader("Unggah file rekap (Excel)", type=["xlsx"])
+# Link CSV export
+url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
 
-if uploaded_file:
-    df = pd.read_excel(uploaded_file)
+# Baca ke DataFrame
+df = pd.read_csv(url)
 
-    # User pilih kolom mana yang berisi nama pegawai
-    col_nama = st.selectbox("Pilih Kolom Nama Pegawai", df.columns)
-
-    pegawai = st.selectbox(
-        "Pilih Pegawai",
-        ["-- Semua --"] + sorted(df[col_nama].dropna().unique().tolist())
-    )
-
-    if pegawai != "-- Semua --":
-        df = df[df[col_nama] == pegawai]
-
-    st.subheader("📑 Data Absen")
-    st.dataframe(df)
+st.write(df.head())  # tampilkan preview data
