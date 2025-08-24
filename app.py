@@ -1,29 +1,30 @@
 import streamlit as st
 import pandas as pd
 
-st.set_page_config(page_title="Rekap Absen 2025", layout="wide")
-
 st.title("📊 Rekap Absen Pegawai 2025")
 
-# Upload file Excel
 uploaded_file = st.file_uploader("Unggah file rekap (Excel)", type=["xlsx"])
 
-if uploaded_file is not None:
-    df = pd.read_excel(uploaded_file, engine="openpyxl")
-    
-    st.subheader("Preview Data")
-    st.dataframe(df, use_container_width=True)
-    
-    # Tambah filter nama pegawai
-    pegawai = st.selectbox("Pilih Pegawai", ["-- Semua --"] + sorted(df['Nama'].dropna().unique().tolist()))
-    
+if uploaded_file:
+    df = pd.read_excel(uploaded_file)
+
+    # Cek apakah ada kolom 'Nama' atau mirip
+    possible_cols = [c for c in df.columns if 'nama' in c.lower()]
+    if possible_cols:
+        col_nama = possible_cols[0]  # ambil kolom pertama yang cocok
+    else:
+        st.error("Kolom 'Nama' tidak ditemukan di file Excel! Pastikan ada kolom dengan nama 'Nama' atau mirip.")
+        st.stop()
+
+    # Dropdown pegawai
+    pegawai = st.selectbox(
+        "Pilih Pegawai",
+        ["-- Semua --"] + sorted(df[col_nama].dropna().unique().tolist())
+    )
+
+    # Filter data kalau pegawai dipilih
     if pegawai != "-- Semua --":
-        df = df[df['Nama'] == pegawai]
-    
-    st.subheader("Data Terfilter")
-    st.dataframe(df, use_container_width=True)
-    
-    # Rekap per pegawai (contoh hitung jumlah Alpha)
-    if 'Keterangan' in df.columns:
-        alpha_count = (df['Keterangan'] == "ALPHA").sum()
-        st.info(f"Jumlah Alpha: {alpha_count}")
+        df = df[df[col_nama] == pegawai]
+
+    st.subheader("📑 Data Absen")
+    st.dataframe(df)
