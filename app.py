@@ -1,40 +1,33 @@
 import streamlit as st
 import pandas as pd
 
-st.set_page_config(page_title="📊 Rekap Absen Pegawai 2025", layout="wide")
-
 st.title("📊 Rekap Absen Pegawai 2025")
 
-# === Load data dari Google Sheets ===
-sheet_id = "1Mz_uhBOdVPcwzTxX2M12BQVcC1HVl4U4"  # ganti dengan sheet ID kamu
-url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
+# ID Google Sheet kamu
+sheet_id = "1Mz_uhB0dVPcwzTxX2M12BQVcc1HVl4U4"
+sheet_name = "Rekap Absen"  # sesuai nama tab di Google Sheets
+url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv&sheet={sheet_name}"
 
 try:
-    # skiprows=1 karena baris pertama hanya judul
-    df = pd.read_csv(url, skiprows=1)
+    # Baca data dari Google Sheets
+    df = pd.read_csv(url, skiprows=2)  # skip 2 baris karena ada judul di atas tabel
 
-    # Pastikan kolom Nama ada
+    # Pastikan ada kolom Nama
     if "Nama" not in df.columns:
-        st.error("⚠️ Kolom 'Nama' tidak ditemukan di file! Periksa header file Excel/Sheets.")
-        st.write("Kolom yang terbaca:", df.columns.tolist())
+        st.error("⚠️ Kolom 'Nama' tidak ditemukan di file! Pastikan header di baris ke-3 berisi: Tanggal | Hari | Nama | Jam Masuk | Jam Pulang")
     else:
-        # Dropdown pilih pegawai
+        st.success("✅ Data berhasil dimuat dari Google Sheets!")
+
+        # Pilihan pegawai
         pegawai = st.selectbox("Pilih Pegawai", ["-- Semua --"] + sorted(df['Nama'].dropna().unique().tolist()))
 
         # Filter data
         if pegawai != "-- Semua --":
-            df_filtered = df[df['Nama'] == pegawai]
+            data_tampil = df[df['Nama'] == pegawai]
         else:
-            df_filtered = df
+            data_tampil = df
 
-        st.subheader("📋 Data Absensi")
-        st.dataframe(df_filtered, use_container_width=True)
-
-        # Rekap sederhana
-        st.subheader("📈 Rekap Kehadiran")
-        rekap = df_filtered.groupby("Nama").size().reset_index(name="Jumlah Kehadiran")
-        st.dataframe(rekap, use_container_width=True)
+        st.dataframe(data_tampil)
 
 except Exception as e:
-    st.error("Gagal membaca file dari Google Sheets!")
-    st.exception(e)
+    st.error(f"Gagal membaca file dari Google Sheets!\n\n{e}")
