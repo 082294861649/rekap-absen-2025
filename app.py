@@ -1,44 +1,65 @@
 import streamlit as st
 import pandas as pd
-from urllib.parse import quote
 
-st.set_page_config(page_title="Rekap Absen Pegawai 2025", layout="wide")
+st.set_page_config(page_title="📊 Rekap Absen Pegawai 2025", layout="wide")
 
 st.title("📊 Rekap Absen Pegawai 2025")
 
-# URL Google Sheets CSV (ganti ID dan sheet sesuai milikmu)
+# --- LINK GOOGLE SHEETS ---
 SHEET_ID = "1JG2Vn_qInZrF5OdOIT62L2gu0vqzkP84_WiQFlPDYMo"
-SHEET_NAME = "Rekap Absen"  # nama sheet persis dari Google Sheets
-url = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv&sheet={quote(SHEET_NAME)}"
+SHEET_NAME = "Rekap Absen"
+url = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv&sheet={SHEET_NAME}"
+
+# --- DAFTAR LIBUR NASIONAL 2025 (contoh, bisa ditambah manual) ---
+libur_nasional = [
+    "2025-01-01",  # Tahun Baru
+    "2025-03-31",  # Nyepi
+    "2025-04-18",  # Wafat Isa
+    "2025-05-01",  # Hari Buruh
+    "2025-05-29",  # Kenaikan Isa
+    "2025-06-01",  # Hari Pancasila
+    "2025-08-17",  # Kemerdekaan
+]
+libur_nasional = pd.to_datetime(libur_nasional)
 
 try:
-    # baca data
-    df = pd.read_csv(url, header=None)
+    df = pd.read_csv(url)
 
-    # buang kolom kosong
-    df = df.dropna(axis=1, how="all")
-
-    # set header sesuai format absensi
+    # 🔹 Bersihkan baris kosong & header tambahan
+    df = df.dropna(how="all")
+    df = df[df.columns[:5]]
     df.columns = ["Tanggal", "Hari", "Nama", "Jam Masuk", "Jam Pulang"]
 
-    # filter pegawai
-    pegawai_list = ["-- Semua --"] + sorted(df["Nama"].dropna().unique().tolist())
-    pegawai = st.selectbox("Pilih Pegawai", pegawai_list)
+    # 🔹 Konversi tanggal
+    df["Tanggal"] = pd.to_datetime(df["Tanggal"], errors="coerce")
 
+    # 🔹 Tambahkan kolom Bulan
+    df["Bulan"] = df["Tanggal"].dt.strftime("%B")
+
+    # --- FILTER ---
+    bulan = st.selectbox("Pilih Bulan", ["-- Semua --"] + sorted(df["Bulan"].dropna().unique().tolist()))
+    pegawai = st.selectbox("Pilih Pegawai", ["-- Semua --"] + sorted(df["Nama"].dropna().unique().tolist()))
+
+    df_filtered = df.copy()
+    if bulan != "-- Semua --":
+        df_filtered = df_filtered[df_filtered["Bulan"] == bulan]
     if pegawai != "-- Semua --":
-        df = df[df["Nama"] == pegawai]
+        df_filtered = df_filtered[df_filtered["Nama"] == pegawai]
 
-    # tampilkan tabel
-    st.dataframe(df, use_container_width=True)
+    # --- HIGHLIGHT MINGGU & LIBUR ---
+    def highlight_libur(row):
+        if pd.isna(row["Tanggal"]):
+            return [""] * len(row)
+        if row["Hari"] == "Minggu" or row["Tanggal"] in libur_nasional:
+            return ["background-color: #ffcccc"] * len(row)  # merah muda
+        return [""] * len(row)
 
-    # tombol download
-    csv = df.to_csv(index=False).encode("utf-8")
-    st.download_button(
-        "⬇️ Unduh Rekap CSV",
-        data=csv,
-        file_name="rekap_absen.csv",
-        mime="text/csv"
+    st.subheader("📅 Data Kehadiran")
+    st.dataframe(
+        df_filtered.style.apply(highlight_libur, axis=1),
+        use_container_width=True
     )
 
-except Exception as e:
-    st.error(f"Gagal membaca file dari Google Sheets!\n\n{e}")
+    # --- GRAFIK JUMLAH ABSEN ---
+    st.subheader("📈 Statistik Kehadiran")
+    hadir = df.groupby("Nama").size().reset_index(name="Ju_
