@@ -4,7 +4,7 @@ import pandas as pd
 st.title("📊 Rekap Absen Pegawai 2025")
 
 # ID Google Sheets kamu
-sheet_id = "1Mz_uhB0dVPcwzTxX2M12BQVcc1HVl4U4"
+sheet_id = "1JG2Vn_qInZrF5OdOIT62L2gu0vqzkP84_WiQFlPDYMo"
 sheet_name = "Rekap%20Absen"  # encode spasi pakai %20
 
 url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv&sheet={sheet_name}"
