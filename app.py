@@ -6,7 +6,7 @@ st.set_page_config(page_title="📊 Rekap Absen Pegawai 2025", layout="wide")
 st.title("📊 Rekap Absen Pegawai 2025")
 
 # === Load data dari Google Sheets ===
-sheet_id = "1Mz_uhB0dVPcwzTxX2M12BQVcc1HVl4U4"  # ganti dengan sheet ID kamu
+sheet_id = "1Mz_uhBOdVPcwzTxX2M12BQVcC1HVl4U4"  # ganti dengan sheet ID kamu
 url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
 
 try:
